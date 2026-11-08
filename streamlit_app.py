@@ -196,6 +196,47 @@ else:
 ''
 
 # -----------------------------------------------------------------------------
+# NEW: Bar chart - countries ranked by GDP in the end year
+
+st.header(f'GDP ranking in {to_year}', divider='gray')
+
+''
+
+if end_df.empty:
+    st.info(f'No GDP data available for the selected countries in {to_year}.')
+else:
+    bar_df = end_df.copy()
+    bar_df['GDP (B)'] = bar_df['GDP'] / 1e9
+
+    bars = (
+        alt.Chart(bar_df)
+        .mark_bar()
+        .encode(
+            x=alt.X('GDP (B):Q', title='GDP (billions)', axis=alt.Axis(format=',.0f')),
+            y=alt.Y('Country Code:N', sort='-x', title=None),  # largest at the top
+            color=alt.Color('Country Code:N', legend=None),
+            tooltip=[
+                alt.Tooltip('Country Code:N', title='Country'),
+                alt.Tooltip('GDP (B):Q', title='GDP (billions)', format=',.0f'),
+            ],
+        )
+    )
+
+    # Value labels at the end of each bar
+    labels = bars.mark_text(align='left', dx=4).encode(
+        text=alt.Text('GDP (B):Q', format=',.0f'),
+        color=alt.value('gray'),
+    )
+
+    st.altair_chart(
+        (bars + labels).properties(height=max(150, 45 * len(bar_df))),
+        use_container_width=True,
+    )
+
+''
+''
+
+# -----------------------------------------------------------------------------
 # Per-country GDP cards (unchanged, but made safe for missing data)
 
 first_year = gdp_df[gdp_df['Year'] == from_year]
